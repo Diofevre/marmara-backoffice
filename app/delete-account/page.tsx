@@ -12,7 +12,7 @@ export default function DeleteAccountPage() {
     { src: "/assets/3.jpg", alt: "Delete confirmation" },
   ];
 
-  const handleImageClick = (index) => {
+  const handleImageClick = (index: number) => {
     setCurrentImageIndex(index);
     setIsCarouselOpen(true);
   };
@@ -26,10 +26,12 @@ export default function DeleteAccountPage() {
   };
 
   const handlePrev = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+    setCurrentImageIndex(
+      (prevIndex) => (prevIndex - 1 + images.length) % images.length
+    );
   };
 
-  const handleOverlayClick = (e) => {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       handleCloseCarousel();
     }
@@ -41,36 +43,34 @@ export default function DeleteAccountPage() {
         Account Deletion – Marmara Spra
       </h1>
       <p className="text-gray-700 leading-relaxed mb-6">
-        At Marmara Spra, we respect your privacy. If you wish to delete your account and associated data, please follow the steps below.
+        At Marmara Spra, we respect your privacy. If you wish to delete your
+        account and associated data, please follow the steps below.
       </p>
 
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
         Steps to request account deletion:
       </h2>
       <ol className="list-decimal list-inside mb-6 space-y-2 text-gray-700">
-        <li>
-          Log in to your account in our application.
-        </li>
+        <li>Log in to your account in our application.</li>
         <li>
           Go to{" "}
           <strong className="text-gray-900">
-            Profiles > My account > Delete my account
+            Profiles &gt; My account &gt; Delete my account
           </strong>
           .
         </li>
-        <li>
-          Follow the on-screen instructions to confirm deletion.
-        </li>
+        <li>Follow the on-screen instructions to confirm deletion.</li>
       </ol>
       <p className="text-gray-700 mb-6">
-        If you cannot access the application, you may also request deletion via email at{" "}
+        If you cannot access the application, you may also request deletion via
+        email at{" "}
         <a
-          href="mailto:support@marmara-spra.com"
+          href="mailto:contact@diofevre.com"
           className="text-blue-600 hover:underline"
         >
           contact@diofevre.com
         </a>{" "}
-        with the subject line: "Account Deletion".
+        with the subject line: &quot;Account Deletion&quot;.
       </p>
 
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
@@ -100,7 +100,10 @@ export default function DeleteAccountPage() {
       </div>
 
       {isCarouselOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={handleOverlayClick}>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={handleOverlayClick}
+        >
           <div className="relative w-full h-full flex items-center justify-center">
             <button
               onClick={handleCloseCarousel}
