@@ -1,53 +1,53 @@
 /* eslint-disable @next/next/no-img-element */
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Package, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Power, 
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Package,
+  Plus,
+  Edit2,
+  Trash2,
+  Power,
   X,
   ChevronUp,
   ChevronDown,
   Search,
-  Filter
-} from 'lucide-react';
-import { 
-  getAllPacks, 
-  addPack, 
-  updatePack, 
-  deletePack, 
+  Filter,
+} from "lucide-react";
+import {
+  getAllPacks,
+  addPack,
+  updatePack,
+  deletePack,
   togglePackStatus,
   type AddPackPayload,
-  type UpdatePackPayload 
-} from '@/lib/services/packServices';
-import { Pack } from '@/lib/types/pack.types';
-import { Input } from '@/components/ui/inputs';
-import Textarea from '@/components/ui/textarea';
-import { toast } from 'sonner';
+  type UpdatePackPayload,
+} from "@/lib/services/packServices";
+import { Pack } from "@/lib/types/pack.types";
+import { Input } from "@/components/ui/inputs";
+import Textarea from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 const Packs = () => {
   const [packs, setPacks] = useState<Pack[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPack, setEditingPack] = useState<Pack | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'price' | 'popularity'>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "price" | "popularity">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showInactiveOnly, setShowInactiveOnly] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<AddPackPayload>({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     price: 0,
-    image: '',
-    items: [{ name: '', quantity: 1 }],
-    addOns: []
+    image: "",
+    items: [{ name: "", quantity: 1 }],
+    addOns: [],
   });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ const Packs = () => {
       setPacks(data);
     } catch (error) {
       console.log(error);
-      toast.error('Failed to fetch packs');
+      toast.error("Failed to fetch packs");
     } finally {
       setLoading(false);
     }
@@ -74,10 +74,10 @@ const Packs = () => {
       await fetchPacks();
       setIsModalOpen(false);
       resetForm();
-      toast.success('Pack added successfully!');
+      toast.success("Pack added successfully!");
     } catch (error) {
       console.log(error);
-      toast.error('Failed to add pack');
+      toast.error("Failed to add pack");
     } finally {
       setFormLoading(false);
     }
@@ -93,32 +93,32 @@ const Packs = () => {
         price: formData.price,
         image: formData.image,
         items: formData.items,
-        addOns: formData.addOns
+        addOns: formData.addOns,
       };
       await updatePack(editingPack._id, updatePayload);
       await fetchPacks();
       setIsModalOpen(false);
       setEditingPack(null);
       resetForm();
-      toast.success('Pack updated successfully!');
+      toast.success("Pack updated successfully!");
     } catch (error) {
       console.log(error);
-      toast.error('Failed to update pack');
+      toast.error("Failed to update pack");
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDeletePack = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this pack?')) return;
+    if (!window.confirm("Are you sure you want to delete this pack?")) return;
     try {
       setLoading(true);
       await deletePack(id);
       await fetchPacks();
-      toast.success('Pack deleted successfully!');
+      toast.success("Pack deleted successfully!");
     } catch (error) {
       console.log(error);
-      toast.error('Failed to delete pack');
+      toast.error("Failed to delete pack");
     } finally {
       setLoading(false);
     }
@@ -129,10 +129,10 @@ const Packs = () => {
       setLoading(true);
       await togglePackStatus(id, !currentStatus);
       await fetchPacks();
-      toast.success('Pack status updated successfully!');
+      toast.success("Pack status updated successfully!");
     } catch (error) {
       console.log(error);
-      toast.error('Failed to toggle pack status');
+      toast.error("Failed to toggle pack status");
     } finally {
       setLoading(false);
     }
@@ -140,12 +140,12 @@ const Packs = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       price: 0,
-      image: '',
-      items: [{ name: '', quantity: 1 }],
-      addOns: []
+      image: "",
+      items: [{ name: "", quantity: 1 }],
+      addOns: [],
     });
   };
 
@@ -157,37 +157,42 @@ const Packs = () => {
       price: pack.price,
       image: pack.image,
       items: pack.items,
-      addOns: pack.addOns
+      addOns: pack.addOns,
     });
     setIsModalOpen(true);
   };
 
-  const filteredAndSortedPacks = packs?.filter(pack => {
-    const matchesSearch = pack.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pack.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = showInactiveOnly ? !pack.isActive : true;
-    return matchesSearch && matchesStatus;
-  })
-  .sort((a, b) => {
-    let comparison = 0;
-    switch (sortBy) {
-      case 'name':
-        comparison = a.name.localeCompare(b.name);
-        break;
-      case 'price':
-        comparison = a.price - b.price;
-        break;
-      case 'popularity':
-        comparison = a.popularity - b.popularity;
-        break;
-    }
-    return sortOrder === 'asc' ? comparison : -comparison;
-  }) ?? [];
+  const filteredAndSortedPacks =
+    packs
+      ?.filter((pack) => {
+        const matchesSearch =
+          pack.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          pack.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = showInactiveOnly ? !pack.isActive : true;
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        let comparison = 0;
+        switch (sortBy) {
+          case "name":
+            comparison = a.name.localeCompare(b.name);
+            break;
+          case "price":
+            comparison = a.price - b.price;
+            break;
+          case "popularity":
+            comparison = a.popularity - b.popularity;
+            break;
+        }
+        return sortOrder === "asc" ? comparison : -comparison;
+      }) ?? [];
 
   if (loading) {
     return (
       <div className="bg-gray-50 flex h-full items-center justify-center">
-        <div className="text-gray-500 animate-pulse text-xl">Loading pack data ...</div>
+        <div className="text-gray-500 animate-pulse text-xl">
+          Loading pack data ...
+        </div>
       </div>
     );
   }
@@ -199,7 +204,9 @@ const Packs = () => {
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
             <Package className="h-8 w-8 text-[#FE724C]" />
-            <h1 className="text-2xl font-semibold text-gray-900">Pack Management</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Pack Management
+            </h1>
           </div>
           <button
             onClick={() => {
@@ -234,7 +241,9 @@ const Packs = () => {
                 <Filter className="h-5 w-5 text-gray-500" />
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'name' | 'price' | 'popularity')}
+                  onChange={(e) =>
+                    setSortBy(e.target.value as "name" | "price" | "popularity")
+                  }
                   className="border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="name">Name</option>
@@ -242,10 +251,12 @@ const Packs = () => {
                   <option value="popularity">Popularity</option>
                 </select>
                 <button
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
                   className="p-2 hover:bg-gray-100 rounded-md"
                 >
-                  {sortOrder === 'asc' ? (
+                  {sortOrder === "asc" ? (
                     <ChevronUp className="h-5 w-5 text-gray-500" />
                   ) : (
                     <ChevronDown className="h-5 w-5 text-gray-500" />
@@ -268,7 +279,9 @@ const Packs = () => {
         {/* Packs Grid */}
         {filteredAndSortedPacks.length === 0 ? (
           <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <p className="text-gray-500 text-lg">No pack found for the selected filter.</p>
+            <p className="text-gray-500 text-lg">
+              No pack found for the selected filter.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -283,15 +296,20 @@ const Packs = () => {
               >
                 <div className="aspect-video relative overflow-hidden">
                   <img
-                    src={pack.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80'}
+                    src={
+                      pack.image ||
+                      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80"
+                    }
                     alt={pack.name}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button
-                      onClick={() => handleToggleStatus(pack._id, pack.isActive)}
+                      onClick={() =>
+                        handleToggleStatus(pack._id, pack.isActive)
+                      }
                       className={`p-2 rounded-full ${
-                        pack.isActive ? 'bg-green-500' : 'bg-gray-500'
+                        pack.isActive ? "bg-green-500" : "bg-gray-500"
                       } text-white hover:opacity-90 transition-opacity`}
                     >
                       <Power className="h-4 w-4" />
@@ -300,15 +318,21 @@ const Packs = () => {
                 </div>
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-medium text-gray-900">{pack.name}</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {pack.name}
+                    </h3>
                     <span className="text-lg font-semibold text-blue-500">
                       ${pack.price.toFixed(2)}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">{pack.description}</p>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {pack.description}
+                  </p>
                   <div className="space-y-2">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">Items:</h4>
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">
+                        Items:
+                      </h4>
                       <ul className="text-sm text-gray-600">
                         {pack.items.map((item, index) => (
                           <li key={index}>
@@ -319,7 +343,9 @@ const Packs = () => {
                     </div>
                     {pack.addOns.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-1">Add-ons:</h4>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">
+                          Add-ons:
+                        </h4>
                         <ul className="text-sm text-gray-600">
                           {pack.addOns.map((addon, index) => (
                             <li key={index}>
@@ -333,7 +359,9 @@ const Packs = () => {
                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-500">Popularity:</span>
-                      <span className="text-sm font-medium">{pack.popularity}</span>
+                      <span className="text-sm font-medium">
+                        {pack.popularity}
+                      </span>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -370,11 +398,11 @@ const Packs = () => {
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="bg-white rounded-lg shadow-xl max-w-2xl w-full my-8"
+              className="fixed top-10  bg-white rounded-lg shadow-xl max-w-2xl w-full my-8"
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {editingPack ? 'Edit Pack' : 'Add New Pack'}
+                  {editingPack ? "Edit Pack" : "Add New Pack"}
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
@@ -392,7 +420,9 @@ const Packs = () => {
                     <Input
                       type="text"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -402,7 +432,12 @@ const Packs = () => {
                     </label>
                     <Textarea
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -414,7 +449,12 @@ const Packs = () => {
                     <Input
                       type="number"
                       value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          price: parseFloat(e.target.value),
+                        })
+                      }
                       step="0.01"
                       min="0"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -427,7 +467,9 @@ const Packs = () => {
                     <Input
                       type="text"
                       value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, image: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -461,7 +503,9 @@ const Packs = () => {
                         />
                         <button
                           onClick={() => {
-                            const newItems = formData.items.filter((_, i) => i !== index);
+                            const newItems = formData.items.filter(
+                              (_, i) => i !== index
+                            );
                             setFormData({ ...formData, items: newItems });
                           }}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-md"
@@ -471,10 +515,12 @@ const Packs = () => {
                       </div>
                     ))}
                     <button
-                      onClick={() => setFormData({
-                        ...formData,
-                        items: [...formData.items, { name: '', quantity: 1 }]
-                      })}
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          items: [...formData.items, { name: "", quantity: 1 }],
+                        })
+                      }
                       className="text-sm text-blue-500 hover:text-blue-600"
                     >
                       + Add Item
@@ -512,7 +558,9 @@ const Packs = () => {
                         />
                         <button
                           onClick={() => {
-                            const newAddons = formData.addOns.filter((_, i) => i !== index);
+                            const newAddons = formData.addOns.filter(
+                              (_, i) => i !== index
+                            );
                             setFormData({ ...formData, addOns: newAddons });
                           }}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-md"
@@ -522,10 +570,12 @@ const Packs = () => {
                       </div>
                     ))}
                     <button
-                      onClick={() => setFormData({
-                        ...formData,
-                        addOns: [...formData.addOns, { name: '', price: 0 }]
-                      })}
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          addOns: [...formData.addOns, { name: "", price: 0 }],
+                        })
+                      }
                       className="text-sm text-blue-500 hover:text-blue-600"
                     >
                       + Add Add-on
@@ -545,7 +595,13 @@ const Packs = () => {
                   className="px-4 py-2 bg-[#FE724C] rounded-[12px] hover:bg-[#FE724C]/80 transition-colors"
                   disabled={formLoading}
                 >
-                  {formLoading ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> : (editingPack ? 'Update Pack' : 'Add Pack')}
+                  {formLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  ) : editingPack ? (
+                    "Update Pack"
+                  ) : (
+                    "Add Pack"
+                  )}
                 </button>
               </div>
             </motion.div>
@@ -554,6 +610,6 @@ const Packs = () => {
       </AnimatePresence>
     </div>
   );
-}
+};
 
 export default Packs;
