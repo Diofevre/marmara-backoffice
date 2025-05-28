@@ -1,37 +1,60 @@
+'use client'
+
+import useSWR from 'swr';
 import axios from 'axios';
 import { Order, OrderStatus, OrderSearchParams } from '../types/orders.types';
 
-// Create API instance
+// Créer une instance Axios
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_API_URL,
-})
+});
 
-export const getOrders = async (status?: OrderStatus): Promise<Order[]> => {
-  const response = await api.get<{ success: boolean; orders: Order[] }>(
-    `/api/order/filter${status ? `?status=${status}` : ''}`
-  );
-  return response.data.orders;
+// Fetcher pour SWR
+const fetcher = (url: string) => api.get(url).then((res) => res.data.orders);
+
+// Hook pour récupérer les commandes
+export const useOrders = (status?: OrderStatus) => {
+  const url = `/api/order/filter${status ? `?status=${status}` : ''}`;
+  const { data, error, isLoading, mutate } = useSWR<Order[], Error>(url, fetcher);
+
+  return {
+    orders: data,
+    isLoading,
+    isError: error,
+    mutate,
+  };
 };
 
-export const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<Order> => {
-  const response = await api.put<{ success: boolean; order: Order }>(
-    `/api/order/update-status/${orderId}`,
-    { status }
-  );
-  return response.data.order;
+// Hook pour mettre à jour le statut d'une commande
+export const useUpdateOrderStatus = () => {
+  const update = async (orderId: string, status: OrderStatus): Promise<Order> => {
+    const response = await api.put<{ success: boolean; order: Order }>(
+      `/api/order/update-status/${orderId}`,
+      { status }
+    );
+    return response.data.order;
+  };
+
+  return { updateOrderStatus: update };
 };
 
-export const searchOrders = async (params: OrderSearchParams): Promise<Order[]> => {
+// Hook pour rechercher des commandes
+export const useSearchOrders = (params: OrderSearchParams) => {
   const queryParams = new URLSearchParams();
-  
+
   if (params.reference) queryParams.append('reference', params.reference);
   if (params.name) queryParams.append('name', params.name);
   if (params.date) queryParams.append('date', params.date);
   if (params.startDate) queryParams.append('startDate', params.startDate);
   if (params.endDate) queryParams.append('endDate', params.endDate);
 
-  const response = await api.get<{ success: boolean; orders: Order[] }>(
-    `/api/order/search-order?${queryParams.toString()}`
-  );
-  return response.data.orders;
+  const url = `/api/order/search-order?${queryParams.toString()}`;
+  const { data, error, isLoading, mutate } = useSWR<Order[], Error>(url, fetcher);
+
+  return {
+    orders: data,
+    isLoading,
+    isError: error,
+    mutate,
+  };
 };
