@@ -28,7 +28,7 @@ import { markAsReadNotifications } from "@/lib/services/notificationService";
 const Orders = () => {
   const [selectedStatus, setSelectedStatus] = useState<
     OrderStatus | undefined
-  >();
+  >("pending"); // Default to "pending"
   const [searchParams, setSearchParams] = useState<OrderSearchParams>({});
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -36,6 +36,8 @@ const Orders = () => {
   const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState<
     string | null
   >(null);
+  const [currentPage, setCurrentPage] = useState(1); // Pagination state
+  const [itemsPerPage] = useState(10); // Number of orders per page
 
   const searchOrdersResult = useSearchOrders(searchParams);
   const ordersResult = useOrders(selectedStatus);
@@ -54,6 +56,18 @@ const Orders = () => {
     "delivered",
     "cancelled",
   ];
+
+  // Pagination logic
+  const indexOfLastOrder = currentPage * itemsPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - itemsPerPage;
+  const currentOrders = (orders ?? []).slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil((orders?.length ?? 0) / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   const handleStatusUpdate = async (
     orderId: string,
@@ -88,11 +102,13 @@ const Orders = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearching(true);
+    setCurrentPage(1);
   };
 
   const resetSearch = () => {
     setSearchParams({});
     setIsSearching(false);
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -192,8 +208,9 @@ const Orders = () => {
             onClick={() => {
               setSelectedStatus(undefined);
               setIsSearching(false);
+              setCurrentPage(1); // Reset to first page
             }}
-            className={`px-4 py-2 rounded-[12px] text-sm font-medium ${
+            className={`px-4 py-2 rounded-full text-sm font-medium ${
               !selectedStatus && !isSearching
                 ? "bg-[#FE724C]"
                 : "bg-white text-gray-700 hover:bg-gray-50"
@@ -207,6 +224,7 @@ const Orders = () => {
               onClick={() => {
                 setSelectedStatus(status);
                 setIsSearching(false);
+                setCurrentPage(1); // Reset to first page
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
                 selectedStatus === status && !isSearching
@@ -226,7 +244,7 @@ const Orders = () => {
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FE724C] mx-auto"></div>
           </div>
-        ) : orders?.length === 0 || isError ? (
+        ) : currentOrders?.length === 0 || isError ? (
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-500 text-lg">
               {isSearching
@@ -236,7 +254,7 @@ const Orders = () => {
           </div>
         ) : (
           <div className="grid gap-6">
-            {(orders ?? []).map((order) => (
+            {currentOrders.map((order) => (
               <div
                 key={order._id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden"
@@ -298,8 +316,8 @@ const Orders = () => {
                               ))}
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          {order.payment === "Not paid" && // Correction de la casse
-                            (updatingPaymentStatus === order._id ? (
+                          {order.payment === "Not paid" && (
+                            updatingPaymentStatus === order._id ? (
                               <span className="text-sm text-gray-500">
                                 Updating payment...
                               </span>
@@ -391,6 +409,48 @@ const Orders = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center mt-6">
+            <div className="text-sm text-gray-500">
+              Showing {indexOfFirstOrder + 1} to{" "}
+              {Math.min(indexOfLastOrder, orders?.length ?? 0)} of{" "}
+              {orders?.length ?? 0} orders
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      currentPage === page
+                        ? "bg-[#FE724C] text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
 

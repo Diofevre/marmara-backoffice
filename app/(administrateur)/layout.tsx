@@ -1,6 +1,6 @@
 "use client";
+
 import { AppSidebar } from "@/components/admin-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import React, { useEffect } from "react";
 import socket from "../../lib/socket";
 import { toast } from "sonner";
@@ -27,14 +27,13 @@ export default function Layout({ children }: Props) {
   }, []);
 
   return (
-    <SidebarProvider>
+    <div className="flex h-screen overflow-hidden">
       <AppSidebar />
-      <main className="flex flex-1 flex-col gap-4 p-4 pt-0 w-full min-h-screen bg-gray-50 backdrop-blur-lg">
-        <div className="flex gap-3 items-center">
-          <SidebarTrigger />
-        </div>
-        {children}
-      </main>
-    </SidebarProvider>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto mt-6 lg:pl-0">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

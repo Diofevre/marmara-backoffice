@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Urbanist } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "sonner";
 import {
   ClerkProvider,
 } from '@clerk/nextjs'
 
-const font = Urbanist({
-  subsets: ["latin"],
-  weight: ['400'],
-})
+const font = localFont({
+  src: "./fonts/Urbanist-VariableFont_wght.ttf",
+  display: "swap",
+  variable: "--font-urbanist",
+});
 
 export const metadata: Metadata = {
   title: "MARMARA SPRA – PIZZA & KEBAB",

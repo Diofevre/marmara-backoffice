@@ -176,8 +176,8 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="fixed top-10 bg-white w-[100mm] max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="fixed top-10 bg-white w-[100mm] max-h-[90vh] overflow-y-auto rounded shadow-2xl">
         {/* Header Section */}
         <div className="bg-gradient-to-b from-gray-50 to-white px-6 pt-8 pb-6">
           <div className="text-center">
