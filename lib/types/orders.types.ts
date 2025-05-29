@@ -1,6 +1,6 @@
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled';
 export type DeliveryMethod = 'delivery' | 'pickup';
-export type PaymentStatus = 'paid' | 'pending' | 'failed';
+export type PaymentStatus = 'Paid' | 'Not paid' | 'failed';
 
 export interface User {
   _id: string;

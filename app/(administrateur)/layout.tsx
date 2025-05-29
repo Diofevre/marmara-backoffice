@@ -1,12 +1,31 @@
-import { AppSidebar } from '@/components/admin-sidebar'
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import React from 'react'
+"use client";
+import { AppSidebar } from "@/components/admin-sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import React, { useEffect, useState } from "react";
+import socket from "../../lib/socket";
+import { toast } from "sonner";
 
 interface Props {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
-export default function Layout({ children } : Props) {
+export default function Layout({ children }: Props) {
+  useEffect(() => {
+    socket.on("newNotification", (data) => {
+      toast.info(data.message, {
+        duration: Infinity,
+        closeButton: true,
+      });
+    });
+
+    socket.on("unreadNotificationsCount", ({ count }) => {});
+
+    return () => {
+      socket.off("newNotification");
+      socket.off("unreadNotificationsCount");
+    };
+  }, []);
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -17,5 +36,5 @@ export default function Layout({ children } : Props) {
         {children}
       </main>
     </SidebarProvider>
-  )
+  );
 }

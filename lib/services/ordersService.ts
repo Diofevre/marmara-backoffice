@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import axios from 'axios';
-import { Order, OrderStatus, OrderSearchParams } from '../types/orders.types';
+import { Order, OrderStatus, OrderSearchParams, PaymentStatus } from '../types/orders.types';
 
 // Créer une instance Axios
 const api = axios.create({
@@ -26,6 +26,19 @@ export const useOrders = (status?: OrderStatus) => {
 };
 
 // Hook pour mettre à jour le statut d'une commande
+export const useUpdatePaymentStatus = () => {
+  const update = async (orderId: string, status: PaymentStatus): Promise<Order> => {
+    const response = await api.put<{ success: boolean; order: Order }>(
+      `/api/order/payment-status/${orderId}`,
+      { paymentStatus: status }
+    );
+    return response.data.order;
+  };
+
+  return { updateOrder: update };
+};
+
+// Hook pour mettre à jour le statut d'une commande
 export const useUpdateOrderStatus = () => {
   const update = async (orderId: string, status: OrderStatus): Promise<Order> => {
     const response = await api.put<{ success: boolean; order: Order }>(
@@ -37,6 +50,7 @@ export const useUpdateOrderStatus = () => {
 
   return { updateOrderStatus: update };
 };
+
 
 // Hook pour rechercher des commandes
 export const useSearchOrders = (params: OrderSearchParams) => {

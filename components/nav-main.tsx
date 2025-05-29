@@ -1,32 +1,33 @@
-"use client"
+"use client";
 
-import { type LucideIcon } from "lucide-react"
+import { type LucideIcon } from "lucide-react";
 
-import {
-  Collapsible,
-} from "@/components/ui/collapsible"
+import { Collapsible } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { useUnreadNotifications } from "@/lib/services/notificationService";
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+    isActive?: boolean;
     items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+      title: string;
+      url: string;
+    }[];
+  }[];
 }) {
+  const { count } = useUnreadNotifications();
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -42,7 +43,16 @@ export function NavMain({
               <a href={item.url}>
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  <span className="py-4">
+                    {item.title}
+                    {item.title === "Orders" &&
+                      count !== undefined &&
+                      count !== 0 && (
+                        <span className="ml-4 text-sm bg-[#FE724C] rounded-full py-1 px-2">
+                          {count}
+                        </span>
+                      )}
+                  </span>
                 </SidebarMenuButton>
               </a>
             </SidebarMenuItem>
@@ -50,5 +60,5 @@ export function NavMain({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

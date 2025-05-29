@@ -1,51 +1,87 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react';
-import { Search, Printer, ChevronDown } from 'lucide-react';
-import { format } from 'date-fns';
-import { Order, OrderStatus, OrderSearchParams } from '@/lib/types/orders.types';
-import { useOrders, useUpdateOrderStatus, useSearchOrders } from '@/lib/services/ordersService';
-import { Input } from '@/components/ui/inputs';
+import React, { useEffect, useState } from "react";
+import { Search, Printer, ChevronDown } from "lucide-react";
+import { format } from "date-fns";
+import {
+  Order,
+  OrderStatus,
+  OrderSearchParams,
+} from "@/lib/types/orders.types";
+import {
+  useOrders,
+  useUpdateOrderStatus,
+  useSearchOrders,
+  useUpdatePaymentStatus,
+} from "@/lib/services/ordersService";
+import { Input } from "@/components/ui/inputs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import OrderTicket from './_components/tickets';
-import { Button } from '@/components/ui/buttons';
+} from "@/components/ui/dropdown-menu";
+import OrderTicket from "./_components/tickets";
+import { Button } from "@/components/ui/buttons";
+import { markAsReadNotifications } from "@/lib/services/notificationService";
 
 const Orders = () => {
-  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | undefined>();
+  const [selectedStatus, setSelectedStatus] = useState<
+    OrderStatus | undefined
+  >();
   const [searchParams, setSearchParams] = useState<OrderSearchParams>({});
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState<
+    string | null
+  >(null);
 
   const searchOrdersResult = useSearchOrders(searchParams);
   const ordersResult = useOrders(selectedStatus);
 
-  const { orders, isLoading, isError, mutate } = isSearching ? searchOrdersResult : ordersResult;
+  const { orders, isLoading, isError, mutate } = isSearching
+    ? searchOrdersResult
+    : ordersResult;
   const { updateOrderStatus } = useUpdateOrderStatus();
+  const { updateOrder: updatePaymentStatus } = useUpdatePaymentStatus();
 
   const statusOptions: OrderStatus[] = [
-    'pending',
-    'preparing',
-    'ready',
-    'out_for_delivery',
-    'delivered',
-    'cancelled',
+    "pending",
+    "preparing",
+    "ready",
+    "out_for_delivery",
+    "delivered",
+    "cancelled",
   ];
 
-  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+  const handleStatusUpdate = async (
+    orderId: string,
+    newStatus: OrderStatus
+  ) => {
     try {
-      setUpdatingStatus(orderId); // Set loading state for this order
+      setUpdatingStatus(orderId);
       await updateOrderStatus(orderId, newStatus);
       mutate();
     } catch (error) {
-      console.error(error);
+      console.error("Erreur lors de la mise à jour du statut:", error);
     } finally {
-      setUpdatingStatus(null); // Clear loading state
+      setUpdatingStatus(null);
+    }
+  };
+
+  const handlePaymentStatusUpdate = async (orderId: string) => {
+    try {
+      setUpdatingPaymentStatus(orderId);
+      await updatePaymentStatus(orderId, "Paid");
+      mutate();
+    } catch (error) {
+      console.error(
+        "Erreur lors de la mise à jour du statut de paiement:",
+        error
+      );
+    } finally {
+      setUpdatingPaymentStatus(null);
     }
   };
 
@@ -59,14 +95,26 @@ const Orders = () => {
     setIsSearching(false);
   };
 
+  useEffect(() => {
+    markAsReadNotifications();
+    return () => {
+      markAsReadNotifications();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Order Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          Order Management
+        </h1>
 
         {/* Search and Filter Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <form
+            onSubmit={handleSearch}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Reference or Customer Name
@@ -80,23 +128,40 @@ const Orders = () => {
                   type="text"
                   className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   placeholder="Search..."
-                  onChange={(e) => setSearchParams({ ...searchParams, reference: e.target.value })}
+                  onChange={(e) =>
+                    setSearchParams({
+                      ...searchParams,
+                      reference: e.target.value,
+                    })
+                  }
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date Range
+              </label>
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   type="date"
                   className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  onChange={(e) => setSearchParams({ ...searchParams, startDate: e.target.value })}
+                  onChange={(e) =>
+                    setSearchParams({
+                      ...searchParams,
+                      startDate: e.target.value,
+                    })
+                  }
                 />
                 <Input
                   type="date"
                   className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  onChange={(e) => setSearchParams({ ...searchParams, endDate: e.target.value })}
+                  onChange={(e) =>
+                    setSearchParams({
+                      ...searchParams,
+                      endDate: e.target.value,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -130,8 +195,8 @@ const Orders = () => {
             }}
             className={`px-4 py-2 rounded-[12px] text-sm font-medium ${
               !selectedStatus && !isSearching
-                ? 'bg-[#FE724C]'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? "bg-[#FE724C]"
+                : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
             All Orders
@@ -145,11 +210,13 @@ const Orders = () => {
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
                 selectedStatus === status && !isSearching
-                  ? 'bg-[#FE724C]'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                  ? "bg-[#FE724C]"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
-              {status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+              {status
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase())}
             </button>
           ))}
         </div>
@@ -162,13 +229,18 @@ const Orders = () => {
         ) : orders?.length === 0 || isError ? (
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <p className="text-gray-500 text-lg">
-              {isSearching ? 'No orders match your search.' : 'No orders found for the selected filter.'}
+              {isSearching
+                ? "No orders match your search."
+                : "No orders found for the selected filter."}
             </p>
           </div>
         ) : (
           <div className="grid gap-6">
             {(orders ?? []).map((order) => (
-              <div key={order._id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div
+                key={order._id}
+                className="bg-white rounded-lg shadow-sm overflow-hidden"
+              >
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -176,11 +248,13 @@ const Orders = () => {
                         Order {order.reference}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {format(new Date(order.date), 'PPP')}
+                        {format(new Date(order.date), "PPP")}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      {['ready', 'out_for_delivery', 'delivered'].includes(order.status) && (
+                      {["ready", "out_for_delivery", "delivered"].includes(
+                        order.status
+                      ) && (
                         <button
                           onClick={() => setSelectedOrder(order)}
                           className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-sm hover:bg-green-100 transition-colors border border-green-700"
@@ -189,30 +263,58 @@ const Orders = () => {
                         </button>
                       )}
                       {updatingStatus === order._id ? (
-                        <span className="text-sm text-gray-500">Changing status...</span>
+                        <span className="text-sm text-gray-500">
+                          Changing status...
+                        </span>
                       ) : (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="flex items-center gap-2 text-sm border-gray-300"
-                            >
-                              {order.status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                              <ChevronDown size={16} />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            {statusOptions.map((status) => (
-                              <DropdownMenuItem
-                                key={status}
-                                onClick={() => handleStatusUpdate(order._id, status)}
-                                className={order.status === status ? 'bg-gray-100' : ''}
+                        <div className="flex items-center gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="flex items-center gap-2 text-sm border-gray-300"
                               >
-                                {status.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                              </DropdownMenuItem>
+                                {order.status
+                                  .replace(/_/g, " ")
+                                  .replace(/\b\w/g, (l) => l.toUpperCase())}
+                                <ChevronDown size={16} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              {statusOptions.map((status) => (
+                                <DropdownMenuItem
+                                  key={status}
+                                  onClick={() =>
+                                    handleStatusUpdate(order._id, status)
+                                  }
+                                  className={
+                                    order.status === status ? "bg-gray-100" : ""
+                                  }
+                                >
+                                  {status
+                                    .replace(/_/g, " ")
+                                    .replace(/\b\w/g, (l) => l.toUpperCase())}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          {order.payment === "Not paid" && // Correction de la casse
+                            (updatingPaymentStatus === order._id ? (
+                              <span className="text-sm text-gray-500">
+                                Updating payment...
+                              </span>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                className="text-sm border-green-700 text-green-700 hover:bg-green-50"
+                                onClick={() =>
+                                  handlePaymentStatusUpdate(order._id)
+                                }
+                              >
+                                Mark as paid
+                              </Button>
                             ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -220,22 +322,32 @@ const Orders = () => {
                   <div className="border-t border-gray-200 pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Customer Information</h4>
+                        <h4 className="text-sm font-medium text-gray-500">
+                          Customer Information
+                        </h4>
                         {order.userId ? (
                           <div className="mt-2">
                             <p className="text-sm text-gray-900">
                               {order.userId.firstName} {order.userId.lastName}
                             </p>
-                            <p className="text-sm text-gray-500">{order.userId.email}</p>
-                            <p className="text-sm text-gray-500">{order.userId.phone}</p>
+                            <p className="text-sm text-gray-500">
+                              {order.userId.email}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {order.userId.phone}
+                            </p>
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-500 mt-2">Guest Order</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Guest Order
+                          </p>
                         )}
                       </div>
 
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Order Details</h4>
+                        <h4 className="text-sm font-medium text-gray-500">
+                          Order Details
+                        </h4>
                         <div className="mt-2">
                           <p className="text-sm text-gray-900">
                             Delivery Method: {order.deliveryMethod}
@@ -252,15 +364,25 @@ const Orders = () => {
                   </div>
 
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Order Items</h4>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">
+                      Order Items
+                    </h4>
                     <div className="space-y-2">
                       {order.items.map((item, index) => (
-                        <div key={index} className="flex justify-between text-sm">
+                        <div
+                          key={index}
+                          className="flex justify-between text-sm"
+                        >
                           <span className="text-gray-900">
-                            {item.quantity}x {item.platId?.name || item.packId?.name}
+                            {item.quantity}x{" "}
+                            {item.platId?.name || item.packId?.name}
                           </span>
                           <span className="text-gray-500">
-                            ${((item.platId?.price || item.packId?.price || 0) * item.quantity).toFixed(2)}
+                            $
+                            {(
+                              (item.platId?.price || item.packId?.price || 0) *
+                              item.quantity
+                            ).toFixed(2)}
                           </span>
                         </div>
                       ))}
@@ -274,7 +396,10 @@ const Orders = () => {
 
         {/* Order Ticket Modal */}
         {selectedOrder && (
-          <OrderTicket order={selectedOrder} onClose={() => setSelectedOrder(null)} />
+          <OrderTicket
+            order={selectedOrder}
+            onClose={() => setSelectedOrder(null)}
+          />
         )}
       </div>
     </div>
