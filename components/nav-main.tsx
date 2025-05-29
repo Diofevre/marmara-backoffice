@@ -34,8 +34,8 @@ export function NavMain({
   useEffect(() => {
     setUnreadNotifications(count);
 
-    socket.on("unreadNotificationsCount", ({ countNotif }) => {
-      setUnreadNotifications(countNotif);
+    socket.on("unreadNotificationsCount", (data) => {
+      setUnreadNotifications(data.count);
     });
 
     return () => {
