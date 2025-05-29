@@ -1,6 +1,7 @@
 "use client";
 
 import { type LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Collapsible } from "@/components/ui/collapsible";
 import {
@@ -11,6 +12,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useUnreadNotifications } from "@/lib/services/notificationService";
+import socket from "../lib/socket";
 
 export function NavMain({
   items,
@@ -26,7 +28,20 @@ export function NavMain({
     }[];
   }[];
 }) {
+  const [unreadNotifications, setUnreadNotifications] = useState();
   const { count } = useUnreadNotifications();
+
+  useEffect(() => {
+    setUnreadNotifications(count);
+
+    socket.on("unreadNotificationsCount", ({ countNotif }) => {
+      setUnreadNotifications(countNotif);
+    });
+
+    return () => {
+      socket.off("unreadNotificationsCount");
+    };
+  }, [count]);
 
   return (
     <SidebarGroup>
@@ -46,10 +61,10 @@ export function NavMain({
                   <span className="py-4">
                     {item.title}
                     {item.title === "Orders" &&
-                      count !== undefined &&
-                      count !== 0 && (
+                      unreadNotifications !== undefined &&
+                      unreadNotifications !== 0 && (
                         <span className="ml-4 text-sm bg-[#FE724C] rounded-full py-1 px-2">
-                          {count}
+                          {unreadNotifications}
                         </span>
                       )}
                   </span>
