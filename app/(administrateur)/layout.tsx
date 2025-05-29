@@ -1,7 +1,7 @@
 "use client";
 import { AppSidebar } from "@/components/admin-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import socket from "../../lib/socket";
 import { toast } from "sonner";
 
@@ -18,7 +18,7 @@ export default function Layout({ children }: Props) {
       });
     });
 
-    socket.on("unreadNotificationsCount", ({ count }) => {});
+    socket.on("unreadNotificationsCount", () => {});
 
     return () => {
       socket.off("newNotification");
