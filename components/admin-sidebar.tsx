@@ -123,7 +123,7 @@ export function AppSidebar() {
                       {item.title === "Orders" &&
                       unreadNotifications !== undefined &&
                       unreadNotifications !== 0 && (
-                        <span className="ml-4 text-sm bg-[#FE724C] rounded-full py-1 px-2">
+                        <span className="ml-4 text-sm bg-[#FE724C] rounded-full py-1 px-3">
                           {unreadNotifications}
                         </span>
                       )}
