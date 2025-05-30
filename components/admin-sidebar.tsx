@@ -3,9 +3,11 @@
 import * as React from "react";
 import { Menu, X, ChefHat, ListOrdered, TicketPercent, BlendIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
+import { useUnreadNotifications } from "@/lib/services/notificationService";
+import socket from "../lib/socket";
 
 // Sample data
 const data = {
@@ -47,6 +49,20 @@ const data = {
 export function AppSidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const [unreadNotifications, setUnreadNotifications] = useState();
+  const { count } = useUnreadNotifications();
+
+  useEffect(() => {
+    setUnreadNotifications(count);
+
+    socket.on("unreadNotificationsCount", (data) => {
+      setUnreadNotifications(data.count);
+    });
+
+    return () => {
+      socket.off("unreadNotificationsCount");
+    };
+  }, [count]);
 
   return (
     <div className="border-r border-gray-100">
@@ -104,6 +120,13 @@ export function AppSidebar() {
                         <item.icon className="w-5 h-5" />
                       </span>
                       {item.title}
+                      {item.title === "Orders" &&
+                      unreadNotifications !== undefined &&
+                      unreadNotifications !== 0 && (
+                        <span className="ml-4 text-sm bg-[#FE724C] rounded-full py-1 px-2">
+                          {unreadNotifications}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>
