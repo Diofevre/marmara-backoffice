@@ -1,25 +1,39 @@
 /* eslint-disable @next/next/no-img-element */
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Calendar, Tag, ChevronDown, ChevronUp, Plus, Edit, Trash2 } from 'lucide-react';
-import { Dish, Promotion } from '@/lib/types/menu.types';
-import { getAllPromotions } from '@/lib/services/promotionService';
-import { getAllDishes } from '@/lib/services/dishService';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import PromotionModal from '@/components/admin/promo-modal';
-import { deletePromotion } from '@/lib/services/promotionService';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import {
+  Calendar,
+  Tag,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { Dish, Promotion } from "@/lib/types/menu.types";
+import { getAllPromotions } from "@/lib/services/promotionService";
+import { getAllDishes } from "@/lib/services/dishService";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import PromotionModal from "@/components/admin/promo-modal";
+import { deletePromotion } from "@/lib/services/promotionService";
+import { toast } from "sonner";
 
 const PromotionsPage: React.FC = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [, setAllDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedPromotion, setExpandedPromotion] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'expired'>('all');
+  const [expandedPromotion, setExpandedPromotion] = useState<string | null>(
+    null
+  );
+  const [filter, setFilter] = useState<
+    "all" | "active" | "upcoming" | "expired"
+  >("all");
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [editingPromotion, setEditingPromotion] = useState<Promotion | undefined>(undefined);
+  const [editingPromotion, setEditingPromotion] = useState<
+    Promotion | undefined
+  >(undefined);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,14 +41,14 @@ const PromotionsPage: React.FC = () => {
         setLoading(true);
         const [promotionsData, dishesData] = await Promise.all([
           getAllPromotions(),
-          getAllDishes()
+          getAllDishes(),
         ]);
         setPromotions(promotionsData);
         setAllDishes(dishesData);
 
         console.log(dishesData);
       } catch (err) {
-        setError('Failed to load promotions. Please try again later.');
+        setError("Failed to load promotions. Please try again later.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -58,7 +72,7 @@ const PromotionsPage: React.FC = () => {
       const data = await getAllPromotions();
       setPromotions(data);
     } catch (err) {
-      setError('Failed to load promotions. Please try again later.');
+      setError("Failed to load promotions. Please try again later.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -74,13 +88,13 @@ const PromotionsPage: React.FC = () => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    if (now < start) return 'upcoming';
-    if (now > end) return 'expired';
-    return 'active';
+    if (now < start) return "upcoming";
+    if (now > end) return "expired";
+    return "active";
   };
 
-  const filteredPromotions = promotions.filter(promotion => {
-    if (filter === 'all') return true;
+  const filteredPromotions = promotions.filter((promotion) => {
+    if (filter === "all") return true;
 
     const status = getPromotionStatus(promotion.startDate, promotion.endDate);
     return status === filter;
@@ -111,17 +125,19 @@ const PromotionsPage: React.FC = () => {
       const result = await deletePromotion(promotionId);
 
       if (result.success) {
-        toast.success('Promotion deleted successfully!'); 
-        setPromotions(prevPromotions => prevPromotions.filter(promotion => promotion._id !== promotionId));
+        toast.success("Promotion deleted successfully!");
+        setPromotions((prevPromotions) =>
+          prevPromotions.filter((promotion) => promotion._id !== promotionId)
+        );
         fetchPromotions(); // Refresh promotions list
       } else {
         toast.error(`Failed to delete promotion: ${result.message}`);
-        setError(`Failed to delete promotion: ${result.message}`); 
+        setError(`Failed to delete promotion: ${result.message}`);
       }
     } catch (error) {
       console.error("Error deleting promotion:", error);
-      toast.error('An unexpected error occurred while deleting.');
-      setError('An unexpected error occurred while deleting.');
+      toast.error("An unexpected error occurred while deleting.");
+      setError("An unexpected error occurred while deleting.");
     } finally {
       setLoading(false);
     }
@@ -132,10 +148,10 @@ const PromotionsPage: React.FC = () => {
     const statusA = getPromotionStatus(a.startDate, a.endDate);
     const statusB = getPromotionStatus(b.startDate, b.endDate);
 
-    if (statusA === 'active' && statusB !== 'active') return -1;
-    if (statusA !== 'active' && statusB === 'active') return 1;
-    if (statusA === 'upcoming' && statusB === 'expired') return -1;
-    if (statusA === 'expired' && statusB === 'upcoming') return 1;
+    if (statusA === "active" && statusB !== "active") return -1;
+    if (statusA !== "active" && statusB === "active") return 1;
+    if (statusA === "upcoming" && statusB === "expired") return -1;
+    if (statusA === "expired" && statusB === "upcoming") return 1;
 
     // If same status, sort by start date (newest first)
     return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
@@ -144,7 +160,9 @@ const PromotionsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="bg-gray-50 flex h-full items-center justify-center">
-        <div className="text-gray-500 animate-pulse text-xl">Loading promotions data ...</div>
+        <div className="text-gray-500 animate-pulse text-xl">
+          Loading promotions data ...
+        </div>
       </div>
     );
   }
@@ -173,44 +191,49 @@ const PromotionsPage: React.FC = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Special Promotions</h1>
             <p className="text-gray-600">
-              Discover our special offers and discounts on selected dishes. Don&apos;t miss out on these limited-time promotions!
+              Discover our special offers and discounts on selected dishes.
+              Don&apos;t miss out on these limited-time promotions!
             </p>
           </div>
 
           <div className="mb-6 flex flex-wrap gap-2">
             <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${filter === 'all'
-                ? 'bg-[#FE724C] text-black'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+              onClick={() => setFilter("all")}
+              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${
+                filter === "all"
+                  ? "bg-[#FE724C] text-black"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
             >
               All Promotions
             </button>
             <button
-              onClick={() => setFilter('active')}
-              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${filter === 'active'
-                ? 'bg-[#FE724C] text-black'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+              onClick={() => setFilter("active")}
+              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${
+                filter === "active"
+                  ? "bg-[#FE724C] text-black"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
             >
               Active
             </button>
             <button
-              onClick={() => setFilter('upcoming')}
-              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${filter === 'upcoming'
-                ? 'bg-[#FE724C] text-black'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+              onClick={() => setFilter("upcoming")}
+              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${
+                filter === "upcoming"
+                  ? "bg-[#FE724C] text-black"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
             >
               Upcoming
             </button>
             <button
-              onClick={() => setFilter('expired')}
-              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${filter === 'expired'
-                ? 'bg-[#FE724C] text-black'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+              onClick={() => setFilter("expired")}
+              className={`px-4 py-2 rounded-[12px] text-sm font-medium transition-colors ${
+                filter === "expired"
+                  ? "bg-[#FE724C] text-black"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
             >
               Expired
             </button>
@@ -228,23 +251,29 @@ const PromotionsPage: React.FC = () => {
 
           {sortedPromotions.length === 0 ? (
             <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <p className="text-gray-500 text-lg">No promotions found for the selected filter.</p>
+              <p className="text-gray-500 text-lg">
+                No promotions found for the selected filter.
+              </p>
             </div>
           ) : (
             <div className="space-y-6">
-              {sortedPromotions.map(promotion => {
-                const status = getPromotionStatus(promotion.startDate, promotion.endDate);
+              {sortedPromotions.map((promotion) => {
+                const status = getPromotionStatus(
+                  promotion.startDate,
+                  promotion.endDate
+                );
                 const isExpanded = expandedPromotion === promotion._id;
 
                 return (
                   <div
                     key={promotion._id}
-                    className={`border rounded-lg overflow-hidden transition-all duration-300 ${status === 'active'
-                      ? 'border-green-200 bg-green-50'
-                      : status === 'upcoming'
-                        ? 'border-blue-200 bg-blue-50'
-                        : 'border-gray-200 bg-gray-50'
-                      }`}
+                    className={`border rounded-lg overflow-hidden transition-all duration-300 ${
+                      status === "active"
+                        ? "border-green-200 bg-green-50"
+                        : status === "upcoming"
+                        ? "border-blue-200 bg-blue-50"
+                        : "border-gray-200 bg-gray-50"
+                    }`}
                   >
                     <div
                       className="p-4 sm:p-6 cursor-pointer"
@@ -252,37 +281,46 @@ const PromotionsPage: React.FC = () => {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                         <div className="flex items-center mb-2 sm:mb-0">
-                          <div className={`p-2 rounded-full mr-4 ${status === 'active'
-                            ? 'bg-green-100 text-green-600'
-                            : status === 'upcoming'
-                              ? 'bg-blue-100 text-blue-600'
-                              : 'bg-gray-100 text-gray-600'
-                            }`}>
+                          <div
+                            className={`p-2 rounded-full mr-4 ${
+                              status === "active"
+                                ? "bg-green-100 text-green-600"
+                                : status === "upcoming"
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
                             <Tag size={20} />
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold">{promotion.discount}% OFF</h3>
+                            <h3 className="text-xl font-bold">
+                              {promotion.discount}% OFF
+                            </h3>
                             <div className="flex items-center text-sm text-gray-600 mt-1">
                               <Calendar size={14} className="mr-1" />
                               <span>
-                                {formatDate(promotion.startDate)} - {formatDate(promotion.endDate)}
+                                {formatDate(promotion.startDate)} -{" "}
+                                {formatDate(promotion.endDate)}
                               </span>
                             </div>
                           </div>
                         </div>
 
                         <div className="flex items-center">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium mr-3 ${status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : status === 'upcoming'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
-                            }`}>
-                            {status === 'active'
-                              ? 'Active'
-                              : status === 'upcoming'
-                                ? 'Upcoming'
-                                : 'Expired'}
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium mr-3 ${
+                              status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : status === "upcoming"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {status === "active"
+                              ? "Active"
+                              : status === "upcoming"
+                              ? "Upcoming"
+                              : "Expired"}
                           </span>
                           <button
                             onClick={(e) => {
@@ -304,30 +342,45 @@ const PromotionsPage: React.FC = () => {
                           >
                             <Trash2 size={20} className="text-red-500" />
                           </button>
-                          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                          {isExpanded ? (
+                            <ChevronUp size={20} />
+                          ) : (
+                            <ChevronDown size={20} />
+                          )}
                         </div>
                       </div>
                     </div>
 
                     {isExpanded && (
                       <div className="px-6 pb-6 pt-2 border-t border-gray-200">
-                        <h4 className="font-medium mb-3">Dishes on Promotion:</h4>
+                        <h4 className="font-medium mb-3">
+                          Dishes on Promotion:
+                        </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                          {promotion.plats.map(dish => {
-                            const discountedPrice = dish.price * (1 - promotion.discount / 100);
+                          {promotion.plats.map((dish) => {
+                            const discountedPrice =
+                              dish.price * (1 - promotion.discount / 100);
 
                             return (
-                              <div key={dish._id} className="bg-white rounded-lg p-3 border border-gray-100">
+                              <div
+                                key={dish._id}
+                                className="bg-white rounded-lg p-3 border border-gray-100"
+                              >
                                 <div className="flex items-start">
                                   <div className="h-16 w-16 rounded overflow-hidden mr-3 flex-shrink-0">
                                     <img
-                                      src={dish.image || 'https://www.cobsbread.com/us/wp-content//uploads/2022/09/Pepperoni-pizza-850x630-1.png'}
+                                      src={
+                                        dish.image ||
+                                        "https://www.cobsbread.com/us/wp-content//uploads/2022/09/Pepperoni-pizza-850x630-1.png"
+                                      }
                                       alt={dish.name}
                                       className="h-full w-full object-cover"
                                     />
                                   </div>
                                   <div>
-                                    <h5 className="font-medium text-sm">{dish.name}</h5>
+                                    <h5 className="font-medium text-sm">
+                                      {dish.name}
+                                    </h5>
                                     <div className="mt-1 flex items-center">
                                       <span className="text-gray-500 line-through text-xs mr-2">
                                         {formatCurrency(dish.price)}
