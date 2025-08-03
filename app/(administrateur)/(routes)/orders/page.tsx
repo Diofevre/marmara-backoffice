@@ -64,13 +64,13 @@ const Orders = () => {
 
   // Initialiser l'audio
   useEffect(() => {
-    // Créer un son de notification simple
+    // Créer un son de notification fort et long (7 secondes)
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     
     const createNotificationSound = () => {
       if (!soundEnabled) return;
       
-      // Créer une séquence de bips
+      // Créer une séquence de bips forts et longs
       const playBeep = (frequency: number, duration: number, delay: number = 0) => {
         setTimeout(() => {
           const oscillator = audioContext.createOscillator();
@@ -82,7 +82,8 @@ const Orders = () => {
           oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
           oscillator.type = 'sine';
           
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          // Volume plus fort (0.8 au lieu de 0.3)
+          gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
           gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
           
           oscillator.start(audioContext.currentTime);
@@ -90,10 +91,15 @@ const Orders = () => {
         }, delay);
       };
       
-      // Son "ding ding" - deux bips rapides
-      playBeep(800, 0.15, 0);
-      playBeep(1000, 0.15, 200);
-      playBeep(800, 0.15, 400);
+      // Son long de 7 secondes avec plusieurs bips forts
+      playBeep(800, 0.8, 0);      // Premier bip long
+      playBeep(1000, 0.8, 900);   // Deuxième bip long
+      playBeep(800, 0.8, 1800);   // Troisième bip long
+      playBeep(1200, 0.8, 2700);  // Quatrième bip long
+      playBeep(800, 0.8, 3600);   // Cinquième bip long
+      playBeep(1000, 0.8, 4500);  // Sixième bip long
+      playBeep(800, 0.8, 5400);   // Septième bip long
+      playBeep(1200, 0.8, 6300);  // Huitième bip long (total ~7 secondes)
     };
 
     // Vérifier les nouvelles commandes uniquement pour les commandes "pending"
