@@ -7,8 +7,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/buttons";
+import { Printer } from "lucide-react";
 
 interface OrderTicketProps {
   order: Order;
@@ -105,23 +105,23 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
           <div class="receipt">
             <div class="header">
               <div class="title">MARMARA SPRA</div>
-              <div class="info">Commande #${order.reference}</div>
+              <div class="info">Order #${order.reference}</div>
               <div class="info">${format(new Date(order.date), "dd/MM/yyyy HH:mm")}</div>
-              <div class="info">Statut: ${order.status.replace(/_/g, " ").toUpperCase()}</div>
+              <div class="info">Status: ${order.status.replace(/_/g, " ").toUpperCase()}</div>
             </div>
 
             <div class="section">
-              <div class="section-title">Informations Client</div>
+              <div class="section-title">Customer Details</div>
               ${order.userId ? `
                 <div>${order.userId.firstName} ${order.userId.lastName}</div>
                 <div>${order.userId.phone}</div>
-              ` : '<div>Commande Invité</div>'}
-              <div>Livraison: ${order.deliveryMethod}</div>
-              <div>Paiement: ${order.payment}</div>
+              ` : '<div>Guest Order</div>'}
+              <div>Delivery: ${order.deliveryMethod}</div>
+              <div>Payment: ${order.payment}</div>
             </div>
 
             <div class="section">
-              <div class="section-title">Articles commandés</div>
+              <div class="section-title">Order Items</div>
               ${order.items.map(item => `
                 <div class="item">
                   <div class="item-name">${item.quantity}x ${item.platId?.name || item.packId?.name}</div>
@@ -136,8 +136,8 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
             </div>
 
             <div class="footer">
-              Merci d'avoir choisi Marmara SPRA!<br>
-              Imprimé le ${format(new Date(), "dd/MM/yyyy HH:mm")}
+              Thank you for choosing Marmara SPRA!<br>
+              Printed on ${format(new Date(), "dd/MM/yyyy HH:mm")}
             </div>
           </div>
         </body>
@@ -161,7 +161,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
         };
       };
     } else {
-      alert('Veuillez autoriser les pop-ups pour imprimer le ticket');
+      alert('Please allow pop-ups to print the ticket');
     }
   };
 
@@ -170,23 +170,23 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
       <SheetContent side="right" className="w-[400px] sm:w-[500px]">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
-            <span>Ticket de commande #{order.reference}</span>
+            <span>Order Ticket #{order.reference}</span>
           </SheetTitle>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
-          {/* Informations de la commande */}
+          {/* Order Information */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 mb-2">Informations générales</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">General Information</h3>
             <div className="space-y-1 text-sm">
               <p><span className="font-medium">Date:</span> {format(new Date(order.date), "dd/MM/yyyy HH:mm")}</p>
-              <p><span className="font-medium">Statut:</span> 
+              <p><span className="font-medium">Status:</span> 
                 <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
                   {order.status.replace(/_/g, " ").toUpperCase()}
                 </span>
               </p>
-              <p><span className="font-medium">Méthode de livraison:</span> {order.deliveryMethod}</p>
-              <p><span className="font-medium">Statut paiement:</span> 
+              <p><span className="font-medium">Delivery Method:</span> {order.deliveryMethod}</p>
+              <p><span className="font-medium">Payment Status:</span> 
                 <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
                   order.payment === 'Paid' 
                     ? 'bg-green-100 text-green-800' 
@@ -198,9 +198,9 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
             </div>
           </div>
 
-          {/* Informations client */}
+          {/* Customer Information */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 mb-2">Client</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">Customer</h3>
             {order.userId ? (
               <div className="space-y-1 text-sm">
                 <p className="font-medium">{order.userId.firstName} {order.userId.lastName}</p>
@@ -208,13 +208,13 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
                 <p className="text-gray-600">{order.userId.phone}</p>
               </div>
             ) : (
-              <p className="text-sm text-gray-600">Commande invité</p>
+              <p className="text-sm text-gray-600">Guest order</p>
             )}
           </div>
 
-          {/* Articles commandés */}
+          {/* Order Items */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Articles commandés</h3>
+            <h3 className="font-semibold text-gray-900">Order Items</h3>
             <div className="divide-y divide-gray-200">
               {order.items.map((item, index) => (
                 <div key={index} className="py-3 flex justify-between items-center">
@@ -222,7 +222,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
                     <p className="font-medium text-gray-900">
                       {item.platId?.name || item.packId?.name}
                     </p>
-                    <p className="text-sm text-gray-500">Quantité: {item.quantity}</p>
+                    <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                   </div>
                   <p className="font-semibold text-gray-900">
                     {((item.platId?.price || item.packId?.price || 0) * item.quantity).toFixed(2)}€
@@ -240,7 +240,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
             </div>
           </div>
 
-          {/* Bouton d'impression */}
+          {/* Print Button */}
           <div className="pt-4 border-t">
             <Button 
               onClick={handlePrint}
@@ -248,7 +248,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({ order, onClose }) => {
               size="lg"
             >
               <Printer className="mr-2 h-4 w-4" />
-              Imprimer le ticket
+              Print Ticket
             </Button>
           </div>
         </div>
