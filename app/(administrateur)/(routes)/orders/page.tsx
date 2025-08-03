@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, Printer, ChevronDown } from "lucide-react";
+import { Search, Printer, ChevronDown, Volume2, VolumeX } from "lucide-react";
 import { format } from "date-fns";
 import {
   Order,
@@ -28,7 +29,7 @@ import { markAsReadNotifications } from "@/lib/services/notificationService";
 const Orders = () => {
   const [selectedStatus, setSelectedStatus] = useState<
     OrderStatus | undefined
-  >("pending"); // Default to "pending"
+  >("pending");
   const [searchParams, setSearchParams] = useState<OrderSearchParams>({});
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -36,8 +37,12 @@ const Orders = () => {
   const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState<
     string | null
   >(null);
-  const [currentPage, setCurrentPage] = useState(1); // Pagination state
-  const [itemsPerPage] = useState(10); // Number of orders per page
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  
+  // États pour les notifications sonores
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [previousOrdersCount, setPreviousOrdersCount] = useState<number>(0);
 
   const searchOrdersResult = useSearchOrders(searchParams);
   const ordersResult = useOrders(selectedStatus);
@@ -56,6 +61,75 @@ const Orders = () => {
     "delivered",
     "cancelled",
   ];
+
+  // Initialiser l'audio
+  useEffect(() => {
+    // Créer un son de notification simple
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    const createNotificationSound = () => {
+      if (!soundEnabled) return;
+      
+      // Créer une séquence de bips
+      const playBeep = (frequency: number, duration: number, delay: number = 0) => {
+        setTimeout(() => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+          oscillator.type = 'sine';
+          
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + duration);
+        }, delay);
+      };
+      
+      // Son "ding ding" - deux bips rapides
+      playBeep(800, 0.15, 0);
+      playBeep(1000, 0.15, 200);
+      playBeep(800, 0.15, 400);
+    };
+
+    // Vérifier les nouvelles commandes uniquement pour les commandes "pending"
+    if (!isSearching && selectedStatus === "pending" && orders) {
+      const currentOrdersCount = orders.length;
+      
+      // Si c'est la première fois qu'on charge, juste sauvegarder le nombre
+      if (previousOrdersCount === 0) {
+        setPreviousOrdersCount(currentOrdersCount);
+      } 
+      // Si il y a plus de commandes qu'avant, jouer le son
+      else if (currentOrdersCount > previousOrdersCount) {
+        createNotificationSound();
+        setPreviousOrdersCount(currentOrdersCount);
+        
+        // Optionnel: Montrer une notification visuelle
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Nouvelle commande!', {
+            body: `Vous avez ${currentOrdersCount - previousOrdersCount} nouvelle(s) commande(s)`,
+            icon: '/favicon.ico'
+          });
+        }
+      }
+      // Mettre à jour le compteur même si le nombre diminue
+      else if (currentOrdersCount !== previousOrdersCount) {
+        setPreviousOrdersCount(currentOrdersCount);
+      }
+    }
+  }, [orders, isSearching, selectedStatus, previousOrdersCount, soundEnabled]);
+
+  // Demander la permission pour les notifications
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   // Pagination logic
   const indexOfLastOrder = currentPage * itemsPerPage;
@@ -111,6 +185,10 @@ const Orders = () => {
     setCurrentPage(1);
   };
 
+  const toggleSound = () => {
+    setSoundEnabled(!soundEnabled);
+  };
+
   useEffect(() => {
     markAsReadNotifications();
     return () => {
@@ -121,9 +199,37 @@ const Orders = () => {
   return (
     <div className="min-h-screen">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Order Management
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Order Management
+          </h1>
+          
+          {/* Contrôle du son */}
+          <Button
+            onClick={toggleSound}
+            variant="outline"
+            className={`flex items-center gap-2 ${
+              soundEnabled 
+                ? 'bg-green-50 text-green-700 border-green-200' 
+                : 'bg-red-50 text-red-700 border-red-200'
+            }`}
+          >
+            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            {soundEnabled ? 'Sound ON' : 'Sound OFF'}
+          </Button>
+        </div>
+
+        {/* Indicateur de nouvelles commandes */}
+        {!isSearching && selectedStatus === "pending" && orders && orders.length > 0 && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <p className="text-green-800 font-medium">
+                {orders.length} pending order{orders.length > 1 ? 's' : ''} waiting for preparation
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Search and Filter Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -185,7 +291,7 @@ const Orders = () => {
             <div className="flex items-end gap-2">
               <button
                 type="submit"
-                className="flex-1 bg-[#FE724C] px-4 py-2 rounded-md hover:bg-[#FE724C]/80 focus:outline-none focus:ring-2 focus:ring-[#FE724C] focus:ring-offset-2"
+                className="flex-1 bg-[#FE724C] text-white px-4 py-2 rounded-md hover:bg-[#FE724C]/80 focus:outline-none focus:ring-2 focus:ring-[#FE724C] focus:ring-offset-2"
               >
                 Search Orders
               </button>
@@ -208,11 +314,11 @@ const Orders = () => {
             onClick={() => {
               setSelectedStatus(undefined);
               setIsSearching(false);
-              setCurrentPage(1); // Reset to first page
+              setCurrentPage(1);
             }}
             className={`px-4 py-2 rounded-full text-sm font-medium ${
               !selectedStatus && !isSearching
-                ? "bg-[#FE724C]"
+                ? "bg-[#FE724C] text-white"
                 : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
@@ -224,11 +330,11 @@ const Orders = () => {
               onClick={() => {
                 setSelectedStatus(status);
                 setIsSearching(false);
-                setCurrentPage(1); // Reset to first page
+                setCurrentPage(1);
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
                 selectedStatus === status && !isSearching
-                  ? "bg-[#FE724C]"
+                  ? "bg-[#FE724C] text-white"
                   : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
@@ -257,13 +363,20 @@ const Orders = () => {
             {currentOrders.map((order) => (
               <div
                 key={order._id}
-                className="bg-white rounded-lg shadow-sm overflow-hidden"
+                className={`bg-white rounded-lg shadow-sm overflow-hidden ${
+                  order.status === 'pending' ? 'ring-2 ring-orange-200 ring-opacity-50' : ''
+                }`}
               >
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                         Order {order.reference}
+                        {order.status === 'pending' && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                            NEW
+                          </span>
+                        )}
                       </h3>
                       <p className="text-sm text-gray-500">
                         {format(new Date(order.date), "PPP")}
