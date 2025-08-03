@@ -414,7 +414,7 @@ const Orders = () => {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex justify-between items-center mt-6">
+          <div className="flex justify-between items-center mt-6 mb-6">
             <div className="text-sm text-gray-500">
               Showing {indexOfFirstOrder + 1} to{" "}
               {Math.min(indexOfLastOrder, orders?.length ?? 0)} of{" "}
